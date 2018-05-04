@@ -1,0 +1,24 @@
+{
+  "name": "@singcl/upload",
+  "version": "0.0.1",
+  "description": "upload, 大文件上传, 断点续传",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/singcl/upload.git"
+  },
+  "keywords": [
+    "upload",
+    "大文件上传",
+    "断点续传"
+  ],
+  "author": "singcl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/singcl/upload/issues"
+  },
+  "homepage": "https://github.com/singcl/upload#readme"
+}

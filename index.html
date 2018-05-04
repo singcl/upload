@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="./style/bootstrap-theme.min.css">
     <link rel="stylesheet" href="./style/bootstrap.min.css">
+    <link rel="stylesheet" href="./style/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="./style/upload.css">
     <title>大文件断点续传</title>
 </head>
+
 <body>
     <div class="container">
         <div class="row">
             <div class="col-md-4">点击上传按钮</div>
             <div class="col-md-8">
-                <div class="wrap btn btn-default"></div>
-                <input type="file" name="upload" id="file">
-                <p>上传文件</p>
+                <div class="wrap btn btn-default">
+                    <input type="file" name="upload" id="file">
+                    <p>上传文件</p>
+                </div>
             </div>
         </div>
 
@@ -46,4 +50,5 @@
     <script src="./style/bootstrap.min.js"></script>
     <script src="./lib/spark-md5.min.js"></script>
 </body>
+
 </html>

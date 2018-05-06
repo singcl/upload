@@ -50,7 +50,90 @@
     <script src="./lib/spark-md5.min.js"></script>
     <script src="./lib/co.min.js"></script>
     <script>
-        //
+        const baseUrl = 'http://localhost: 5000'
+
+        let chunkSize = 5 * 1024 * 1024  // 默认chunk size 为5M
+        let fileSize = 0
+        let file = null
+        let hasUploaded = 0
+        let chunks = 0
+        
+        // spark = new SparkMD5.ArrayBuffer()
+        $('#file').on('change', (e) => {
+
+            // 初始化校验进度条
+            $('#process1').hide()
+            $('#checkProcessStyle').css('width','0%')
+            $('#checkProcessValue').text('0%')
+
+            file = e.target.files[0]
+            fileSize = file.size
+
+            // @singcl/co 异步编程
+            co(responseChange, file).then((v) => {
+                console.log('完成', v)
+            }).catch((e) => {
+                console.log(e)
+            })
+        })
+        
+        // 0. 响应点击
+        function* responseChange(file) {
+            // 第一步：按照 修改时间+文件名称+最后修改时间-->MD5
+
+            // 显示文件校验进度
+            $('#process1').fadeIn(100)
+            // 开始校验
+            const fileMd5Value = yield md5File(file)
+            return fileMd5Value
+        }
+
+        // 1.修改时间+文件名称+最后修改时间-->MD5
+        function md5File(file) {
+            return new Promise((reslove, reject) => {
+                // blob对象slice 方法兼容
+                const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
+                const spark = new SparkMD5.ArrayBuffer()
+                const fileReader = new FileReader()
+                
+                //chunkSize = 2097152, // Read in chunks of 2MB
+                const chunkSize = file.size / 100
+                //chunks = Math.ceil(file.size / chunkSize),
+                const chunks = 100
+                let currentChunk = 0
+                
+                fileReader.onload = function onload(e) {
+                    console.log('read chunk nr', currentChunk + 1, 'of', chunks)
+                    spark.append(e.target.result)
+                    currentChunk++
+
+                    if(currentChunk < chunks) {
+                        loadNext()
+                    } else {
+                        console.log('finished loading')
+                        const result = spark.end()
+                        reslove(result)
+                    }
+                }
+
+                fileReader.onerror = function onerror(e) {
+                    console.warn('oops, something went wrong.')
+                }
+
+                function loadNext() {
+                    let start = currentChunk * chunkSize
+                    let end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize
+
+                    fileReader.readAsArrayBuffer(blobSlice.call(file, start, end))
+
+                    $('#checkProcessStyle').css('width', (currentChunk + 1) + '%')
+                    $('#checkProcessValue').text((currentChunk + 1) + '%')
+                }
+
+                loadNext()
+            })
+        }
+
     </script>
 </body>
 

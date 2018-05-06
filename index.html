@@ -66,6 +66,10 @@
             $('#checkProcessStyle').css('width','0%')
             $('#checkProcessValue').text('0%')
 
+            // 显示文件校验进度
+            $('#process1').fadeIn(100)
+            
+            // 获取file 对象
             file = e.target.files[0]
             fileSize = file.size
 
@@ -73,19 +77,20 @@
             co(responseChange, file).then((v) => {
                 console.log('完成', v)
             }).catch((e) => {
-                console.log(e)
+                console.log('外部捕获错误：', e)
             })
         })
         
         // 0. 响应点击
         function* responseChange(file) {
             // 第一步：按照 修改时间+文件名称+最后修改时间-->MD5
-
-            // 显示文件校验进度
-            $('#process1').fadeIn(100)
-            // 开始校验
-            const fileMd5Value = yield md5File(file)
-            return fileMd5Value
+            try {
+                // 开始校验
+                const fileMd5Value = yield md5File(file)
+                return fileMd5Value
+            } catch (e) {
+                console.log('内部捕获错误：', e)
+            }
         }
 
         // 1.修改时间+文件名称+最后修改时间-->MD5
@@ -118,6 +123,7 @@
 
                 fileReader.onerror = function onerror(e) {
                     console.warn('oops, something went wrong.')
+                    reject(e)
                 }
 
                 function loadNext() {

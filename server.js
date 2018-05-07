@@ -4,7 +4,7 @@ const formidable = require('formidable')
 const fse = require('fs-extra')
 const co = require('@singcl/co')
 const concat = require('concat-files')
-const opn = require('opn')
+// const opn = require('opn')
 
 const app = express()
 const uploadDir = 'uploads'
@@ -14,7 +14,7 @@ const uploadTempDir = 'temp'
 app.use(express.static(path.resolve(__dirname, './public')))
 
 // 检查文件的MD5
-app.get('/check/file', function(req, res, next) {
+app.get('/check/file', function(req, res) {
     const query = req.query
     const fileName = query.fileName
     const fileMd5Value = query.fileMd5Value
@@ -75,7 +75,7 @@ function* getChunkList(filePath, folderPath) {
 }
 
 // chunk 上传
-app.post('/upload', function(req, res, next) {
+app.post('/upload', function(req, res) {
     co(function*() {
         // 创建temp文件夹 不存在则创建 存在则继续下一步
         try {
@@ -88,9 +88,9 @@ app.post('/upload', function(req, res, next) {
             uploadDir: uploadTempDir
         })
 
-        let folder;
-        let fields;
-        let file;
+        let folder
+        let fields
+        let file
         try {
             const formParsePromise = co.promisify(form.parse)
             const result = yield formParsePromise.call(form, req)
@@ -131,11 +131,11 @@ app.post('/upload', function(req, res, next) {
 })
 
 // 合并文件
-app.get('/merge', function(req, res, next) {
+app.get('/merge', function(req, res) {
     co(function*() {
         const query = req.query
         const md5 = query.md5
-        const size = query.size
+        // const size = query.size
         const fileName = query.fileName
         const srcDir = path.join(uploadDir, md5)
 

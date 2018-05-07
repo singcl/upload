@@ -52,7 +52,7 @@
     <script>
         // blob 对象 slice 方法兼容
         const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
-        const baseUrl = 'http://localhost:5000'
+        const baseUrl = 'http://127.0.0.1:5000'
 
         let chunkSize = 5 * 1024 * 1024 // 默认chunk size 为5M
         let fileSize = 0
@@ -155,8 +155,7 @@
         function checkFileMD5(fileName, fileMd5Value) {
             return new Promise((resolve, reject) => {
                 const url = baseUrl + '/check/file?fileName=' + fileName + "&fileMd5Value=" + fileMd5Value
-                $.getJSON(url).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) =>
-                    reject(errorThrown))
+                $.get(url).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) =>reject(errorThrown))
             })
         }
 
@@ -164,7 +163,6 @@
         function* checkAndUploadChunk(fileMd5Value, chunkList) {
             chunks = Math.ceil(fileSize / chunkSize)
             hasUploaded = chunkList.length
-
             try {
                 for (let i = 0; i < chunks; i++) {
                     let exist = chunkList.indexOf(i + '') > -1
@@ -192,21 +190,23 @@
                 form.append('total', chunks)                                    // chunk总片数
                 form.append('index', i)                                         // 当前正在上传第几片
                 form.append('fileMd5Value', fileMd5Value)                       // 当前正在上传文件的MD5
-
                 $.ajax({
                     url: baseUrl + '/upload',
                     type: 'POST',
                     data: form,
-                    contentType: 'multipart/form-data'
-                }).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) =>
-                    reject(errorThrown))
+                    // contentType: 'multipart/form-data'       // 这样不行
+                    contentType: false,                         //必须！，指定为 false 才能形成正确的 Content-Type
+                    processData: false                          //必须！，告诉 jquery 不要对 form 进行处理
+                }).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) => reject(errorThrown))
             })
         }
 
         // 4. 通知服务器文件上传已完成
         function notifyServer(fileMd5Value) {
-            const url = baseUrl + '/merge?md5=' + fileMd5Value + "&fileName=" + file.name + "&size=" + file.size
-            $.getJSON(url, (data) => alert('上传成功'))
+            return new Promise((resolve, reject) => {
+                const url = baseUrl + '/merge?md5=' + fileMd5Value + '&fileName=' + file.name + '&size=' + file.size
+                $.get(url).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) => reject(errorThrown))
+            })
         }
     </script>
 </body>

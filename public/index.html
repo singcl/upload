@@ -68,13 +68,18 @@
             $('#checkProcessStyle').css('width', '0%')
             $('#checkProcessValue').text('0%')
 
+            // 初始化上传进度条
+            $('#process2').hide()
+            $('#uploadProcessStyle').css('width', '0%')
+            $('#uploadProcessValue').text('0%')
+
             // 获取file 对象
             file = e.target.files[0]
             fileSize = file.size
 
             // @singcl/co 异步编程
             co(responseChange, file).then((v) => {
-                console.log('完成', v)
+                console.log('上传完成-Success!')
             }).catch((e) => {
                 console.log('外部捕获错误：', e)
             })

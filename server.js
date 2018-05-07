@@ -92,10 +92,10 @@ app.post('/upload', function(req, res, next) {
         let fields;
         let file;
         try {
-            const formParsePromise = promisify(form.parse)
+            const formParsePromise = co.promisify(form.parse)
             const result = yield formParsePromise.call(form, req)
-            fields = result.fields
-            file = result.file
+            fields = result[0]
+            file = result[1]
             folder = path.resolve(__dirname, uploadDir, fields.fileMd5Value)
         } catch (e) {
             throw e
@@ -172,24 +172,3 @@ app.listen(5000, function() {
     console.log('服务器已启动，端口：5000')
     // opn('http://127.0.0.1:5000')
 })
-
-/**
- * 基于回调的函数 promise 化
- * 用于 Generator 函数的自动流程管理的Promise 函数
- * 
- * @param {Function} fn 需要promisify 的目标函数
- */
-function promisify(fn) {
-    return function () {
-        var ctx = this;
-        var args = Array.prototype.slice.call(arguments);
-
-        return new Promise(function (resolve, reject) {
-            args.push(function (err, fields, file) {
-                if (err) return reject(err);
-                resolve({fields, file});
-            });
-            fn.apply(ctx, args);
-        });
-    };
-}

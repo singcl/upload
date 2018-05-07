@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/singcl/upload#readme",
   "dependencies": {
-    "@singcl/co": "^1.0.0",
+    "@singcl/co": "^1.0.1",
     "concat-files": "^0.1.1",
     "express": "^4.16.3",
     "formidable": "^1.2.1",

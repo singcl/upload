@@ -50,6 +50,8 @@
     <script src="./lib/spark-md5.min.js"></script>
     <script src="./lib/co.min.js"></script>
     <script>
+        // blob 对象 slice 方法兼容
+        const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
         const baseUrl = 'http://localhost:5000'
 
         let chunkSize = 5 * 1024 * 1024 // 默认chunk size 为5M
@@ -96,7 +98,7 @@
                 // 显示文件上传进度
                 $("#process2").fadeIn(100)
                 // 第三步：检查并分片上传MD5
-                yield checkAndUploadChunk(fileMd5Value, result.chunkList)
+                yield* checkAndUploadChunk(fileMd5Value, result.chunkList)
                 // 第四步: 通知服务器所有分片已上传完成
                 yield notifyServer(fileMd5Value)
             } catch (e) {
@@ -107,8 +109,6 @@
         // 1.修改时间+文件名称+最后修改时间-->MD5
         function md5File(file) {
             return new Promise((resolve, reject) => {
-                // blob 对象 slice 方法兼容
-                const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
                 const spark = new SparkMD5.ArrayBuffer()
                 const fileReader = new FileReader()
 
@@ -188,10 +188,10 @@
                 // FormData API
                 const end = (i + 1) * chunkSize >= fileSize ? fileSize : (i + 1) * chunkSize
                 const form = new FormData()
-                form.append('data', file.slice(i * chunkSize, end)) // 当前上传chunk 的内如
-                form.append('total', chunks) // chunk总片数
-                form.append('index', i) // 当前正在上传第几片
-                form.append('fileMd5Value', fileMd5Value) // 当前正在上传文件的MD5
+                form.append('data', blobSlice.call(file, i * chunkSize, end))   // 当前上传chunk 的内如
+                form.append('total', chunks)                                    // chunk总片数
+                form.append('index', i)                                         // 当前正在上传第几片
+                form.append('fileMd5Value', fileMd5Value)                       // 当前正在上传文件的MD5
 
                 $.ajax({
                     url: baseUrl + '/upload',

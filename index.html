@@ -50,25 +50,22 @@
     <script src="./lib/spark-md5.min.js"></script>
     <script src="./lib/co.min.js"></script>
     <script>
-        const baseUrl = 'http://localhost: 5000'
+        const baseUrl = 'http://localhost:5000'
 
-        let chunkSize = 5 * 1024 * 1024  // 默认chunk size 为5M
+        let chunkSize = 5 * 1024 * 1024 // 默认chunk size 为5M
         let fileSize = 0
         let file = null
         let hasUploaded = 0
         let chunks = 0
-        
+
         // spark = new SparkMD5.ArrayBuffer()
         $('#file').on('change', (e) => {
 
             // 初始化校验进度条
             $('#process1').hide()
-            $('#checkProcessStyle').css('width','0%')
+            $('#checkProcessStyle').css('width', '0%')
             $('#checkProcessValue').text('0%')
 
-            // 显示文件校验进度
-            $('#process1').fadeIn(100)
-            
             // 获取file 对象
             file = e.target.files[0]
             fileSize = file.size
@@ -80,14 +77,28 @@
                 console.log('外部捕获错误：', e)
             })
         })
-        
+
         // 0. 响应点击
         function* responseChange(file) {
-            // 第一步：按照 修改时间+文件名称+最后修改时间-->MD5
             try {
                 // 开始校验
+
+                // 显示文件校验进度
+                $('#process1').fadeIn(100)
+                // 第一步：按照 修改时间+文件名称+最后修改时间-->MD5
                 const fileMd5Value = yield md5File(file)
-                return fileMd5Value
+                // 第二步：校验文件的MD5
+                const result = yield checkFileMD5(file.name, fileMd5Value)
+                if (result.file) {
+                    alert('文件已秒传')
+                    return
+                }
+                // 显示文件上传进度
+                $("#process2").fadeIn(100)
+                // 第三步：检查并分片上传MD5
+                yield checkAndUploadChunk(fileMd5Value, result.chunkList)
+                // 第四步: 通知服务器所有分片已上传完成
+                yield notifyServer(fileMd5Value)
             } catch (e) {
                 console.log('内部捕获错误：', e)
             }
@@ -95,29 +106,29 @@
 
         // 1.修改时间+文件名称+最后修改时间-->MD5
         function md5File(file) {
-            return new Promise((reslove, reject) => {
-                // blob对象slice 方法兼容
+            return new Promise((resolve, reject) => {
+                // blob 对象 slice 方法兼容
                 const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
                 const spark = new SparkMD5.ArrayBuffer()
                 const fileReader = new FileReader()
-                
+
                 //chunkSize = 2097152, // Read in chunks of 2MB
                 const chunkSize = file.size / 100
                 //chunks = Math.ceil(file.size / chunkSize),
                 const chunks = 100
                 let currentChunk = 0
-                
+
                 fileReader.onload = function onload(e) {
                     console.log('read chunk nr', currentChunk + 1, 'of', chunks)
                     spark.append(e.target.result)
                     currentChunk++
 
-                    if(currentChunk < chunks) {
+                    if (currentChunk < chunks) {
                         loadNext()
                     } else {
                         console.log('finished loading')
                         const result = spark.end()
-                        reslove(result)
+                        resolve(result)
                     }
                 }
 
@@ -140,6 +151,63 @@
             })
         }
 
+        // 2.校验文件的MD5
+        function checkFileMD5(fileName, fileMd5Value) {
+            return new Promise((resolve, reject) => {
+                const url = baseUrl + '/check/file?fileName=' + fileName + "&fileMd5Value=" + fileMd5Value
+                $.getJSON(url).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) =>
+                    reject(errorThrown))
+            })
+        }
+
+        // 3.分片上传chunk
+        function* checkAndUploadChunk(fileMd5Value, chunkList) {
+            chunks = Math.ceil(fileSize / chunkSize)
+            hasUploaded = chunkList.length
+
+            try {
+                for (let i = 0; i < chunks; i++) {
+                    let exist = chunkList.indexOf(i + '') > -1
+                    // 如果已经存在, 则不用再上传当前块
+                    if (!exist) {
+                        let index = yield upload(i, fileMd5Value, chunks)
+                        hasUploaded++
+                        let radio = Math.floor((hasUploaded / chunks) * 100)
+                        $("#uploadProcessStyle").css('width', radio + '%')
+                        $("#uploadProcessValue").text(radio + '%')
+                    }
+                }
+            } catch (e) {
+                console.log('内部捕获错误：', e)
+            }
+        }
+
+        // 3.2 单片chunk 上传
+        function upload(i, fileMd5Value, chunks) {
+            return new Promise((resolve, reject) => {
+                // FormData API
+                const end = (i + 1) * chunkSize >= fileSize ? fileSize : (i + 1) * chunkSize
+                const form = new FormData()
+                form.append('data', file.slice(i * chunkSize, end)) // 当前上传chunk 的内如
+                form.append('total', chunks) // chunk总片数
+                form.append('index', i) // 当前正在上传第几片
+                form.append('fileMd5Value', fileMd5Value) // 当前正在上传文件的MD5
+
+                $.ajax({
+                    url: baseUrl + '/upload',
+                    type: 'POST',
+                    data: form,
+                    contentType: 'multipart/form-data'
+                }).then((data, textStatus, jqXHR) => resolve(data), (jqXHR, textStatus, errorThrown) =>
+                    reject(errorThrown))
+            })
+        }
+
+        // 4. 通知服务器文件上传已完成
+        function notifyServer(fileMd5Value) {
+            const url = baseUrl + '/merge?md5=' + fileMd5Value + "&fileName=" + file.name + "&size=" + file.size
+            $.getJSON(url, (data) => alert('上传成功'))
+        }
     </script>
 </body>
 

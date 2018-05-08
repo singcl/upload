@@ -5,7 +5,7 @@ const fse = require('fs-extra')
 const co = require('@singcl/co')
 const concat = require('@singcl/concat')
 // const concat = require('concat-files')
-// const opn = require('opn')
+const opn = require('opn')
 
 const app = express()
 const uploadDir = 'uploads'
@@ -177,5 +177,5 @@ app.get('/merge', function(req, res) {
 
 app.listen(5000, function() {
     console.log('服务器已启动，端口：5000')
-    // opn('http://127.0.0.1:5000')
+    opn('http://127.0.0.1:5000')
 })

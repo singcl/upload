@@ -30,6 +30,7 @@
 
 .progress {
     position: relative;
+    margin: 10px 0;
 }
 
 .progress-bar {
@@ -43,14 +44,18 @@
 }
 
 .container {
-    width: 500px;
+    max-width: 720px;
 }
 
 .row {
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid #969696;
     padding: 10px;
 }
 
 .hidden {
     display: none;
+}
+
+.upload-label {
+    line-height: 40px;
 }

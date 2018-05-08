@@ -13,9 +13,10 @@
 
 <body>
     <div class="container">
+        <h3 style="text-align: center;">大文件分片上传&断点续传</h3>
         <div class="row">
-            <div class="col-md-4">点击上传按钮</div>
-            <div class="col-md-8">
+            <div class="col-xs-4 col-md-3 upload-label">点击上传按钮</div>
+            <div class="col-xs-8 col-md-9">
                 <div class="wrap btn btn-default">
                     <input type="file" name="upload" id="file">
                     <p>上传文件</p>
@@ -24,8 +25,8 @@
         </div>
 
         <div class="row" id="process1" style="display: none;">
-            <div class="col-md-4">校验文件进度</div>
-            <div class="col-md-8">
+            <div class="col-xs-4 col-md-3 upload-label">校验文件进度</div>
+            <div class="col-xs-8 col-md-9">
                 <div class="progress">
                     <div id="checkProcessStyle" class="progress-bar" style="width: 0%;"></div>
                     <p id="checkProcessValue" class="value">0%</p>
@@ -34,8 +35,8 @@
         </div>
 
         <div class="row" id="process2" style="display: none;">
-            <div class="col-md-4">上传文件进度</div>
-            <div class="col-md-8">
+            <div class="col-xs-4 col-md-3 upload-label">上传文件进度</div>
+            <div class="col-xs-8 col-md-9">
                 <div class="progress">
                     <div id="uploadProcessStyle" class="progress-bar" style="width: 0%;">
                         <p id="uploadProcessValue" class="value">0%</p>

@@ -3,7 +3,8 @@ const express = require('express')
 const formidable = require('formidable')
 const fse = require('fs-extra')
 const co = require('@singcl/co')
-const concat = require('concat-files')
+const concat = require('@singcl/concat')
+// const concat = require('concat-files')
 // const opn = require('opn')
 
 const app = express()
@@ -138,22 +139,28 @@ app.get('/merge', function(req, res) {
         // const size = query.size
         const fileName = query.fileName
         const srcDir = path.join(uploadDir, md5)
+        const destination = path.join(uploadDir, fileName)
 
         let mergeRes
 
         try {
-            const files = yield fse.readdir(srcDir)
+            /* const files = yield fse.readdir(srcDir)
             for (let i = 0; i < files.length; i++) {
                 files[i] = path.join(srcDir, files[i])
             }
             console.log(files)
             const concatPromise = co.promisify(concat)
-            yield concatPromise(files, path.join(uploadDir, fileName))
+            yield concatPromise(files, path.join(uploadDir, fileName)) */
+
+            // use myself @singcl/concat module instead of concat-files module for concating chunk files
+            const concatPromise = co.promisify(concat)
+            yield concatPromise(srcDir, destination)
+
             console.log('Merge Success!')
             mergeRes = {
-                stat: 1,
-                chunkList: files,
-                desc: 'Merge Success!'
+                code: 1,
+                chunkList: 'files',
+                msg: 'Merge Success!'
             }
         } catch (e) {
             throw e
